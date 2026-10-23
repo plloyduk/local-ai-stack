@@ -3,16 +3,17 @@
 // This enables autocomplete, go to definition, etc.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// @deno-types="npm:@huggingface/transformers@4.3.1"
 import {
   env,
   pipeline,
-} from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.5.0";
+} from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1";
 
 // Configuration for Deno runtime
 env.useBrowserCache = false;
 env.allowLocalModels = false;
 
-const pipe = await pipeline("feature-extraction", "Supabase/gte-small");
+const pipe = await pipeline("feature-extraction", "Supabase/gte-small", { dtype: "q8" });
 
 serve(async (req) => {
   // Extract input string from JSON body

@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-import { useCompletion } from "ai/react";
+import { useCompletion } from "@ai-sdk/react";
 
 interface Message {
   content: string;
@@ -25,6 +25,7 @@ export default function ChatComponent({
     handleSubmit,
   } = useCompletion({
     api: "/api/qa-pg-vector",
+    streamProtocol: "text",
 
     onFinish: (prompt: string, completion: string) => {
       console.log(messages);

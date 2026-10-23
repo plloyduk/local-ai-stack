@@ -28,9 +28,7 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ["sharp", "onnxruntime-node"],
-  },
+  serverExternalPackages: ["@huggingface/transformers", "sharp", "onnxruntime-node"],
 };
 
 module.exports = nextConfig;
