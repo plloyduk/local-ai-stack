@@ -1,53 +1,26 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { pipeline } from "@xenova/transformers";
+import { generateEmbedding } from "@/lib/embedding.mjs";
 
-const embedding_endpoint = process.env.SUPABASE_EMBEDDING_ENDPOINT!;
+export { generateEmbedding };
 
-export async function vectorSearch(
-  client: SupabaseClient,
-  contentToSearch: string
-) {
-  const embedding = await generateEmbedding(contentToSearch);
-  const result = await client.rpc("match_documents", {
-    query_embedding: embedding,
+export async function vectorSearch(client: SupabaseClient, contentToSearch: string) {
+  const { data, error } = await client.rpc("match_documents", {
+    query_embedding: await generateEmbedding(contentToSearch),
     match_count: 3,
   });
-
-  if (result.error) {
-    console.error("ERROR: ", result.error);
-  }
-  return result.data || "";
+  if (error) throw error;
+  return data ?? [];
 }
 
 export async function generateEmbeddingSupabase(content: string) {
-  const headers = new Headers();
-  headers.append("Authorization", "Bearer " + process.env.SUPABASE_PRIVATE_KEY);
-  headers.append("Content-Type", "application/json");
-  const body = JSON.stringify({
-    input: content,
-  });
-  const response = await fetch(embedding_endpoint, {
+  const response = await fetch(process.env.SUPABASE_EMBEDDING_ENDPOINT!, {
     method: "POST",
-    headers,
-    body,
+    headers: {
+      Authorization: `Bearer ${process.env.SUPABASE_PRIVATE_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ input: content }),
   });
   const json = await response.json();
   return json.embedding;
-}
-
-export async function generateEmbedding(content: string) {
-  const generateEmbedding = await pipeline(
-    "feature-extraction",
-    "Xenova/all-MiniLM-L6-v2"
-  );
-
-  // Generate a vector using Transformers.js
-  const output = await generateEmbedding(content, {
-    pooling: "mean",
-    normalize: true,
-  });
-
-  // Extract the embedding output
-  const embedding = Array.from(output.data);
-  return embedding;
 }
